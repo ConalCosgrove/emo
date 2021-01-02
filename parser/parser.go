@@ -19,6 +19,17 @@ const (
 	CALL // myFunction(X)
 )
 
+var precedences = map[token.TokenType]int{
+	token.EQ: EQUALS,
+	token.NOTEQ: EQUALS,
+	token.LT: LESSGREATER,
+	token.GT: LESSGREATER,
+	token.PLUS: SUM,
+	token.SUB: SUM,
+	token.FWDSLASH: PRODUCT,
+	token.ASTRX: PRODUCT,
+}
+
 type Parser struct {
 	l *lexer.Lexer
 
@@ -48,8 +59,22 @@ func (p *Parser) readNextToken() {
 	p.nextToken = p.l.NextToken()
 }
 
+func (p *Parser) readNextPrecedence() int {
+	if precedence, ok := precedences[p.nextToken.Type]; ok {
+		return precedence
+	}
+	return LOWEST
+}
+
+func (p *Parser) curPrecedence() int {
+	if precedence, ok := precedences[p.curToken.Type]; ok {
+		return precedence;
+	}
+	return LOWEST;
+}
+
+	
 func (p *Parser) parseStatement() ast.Statement {
-	fmt.Printf("CurrentToken: %s\n", p.curToken.Type)
 	switch p.curToken.Type {
 		case token.LET:
 			return p.parseLetStatement()
@@ -94,12 +119,24 @@ func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 }
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
+	fmt.Printf("parseExpression with %s. Next token is %s\n", p.curToken, p.nextToken)
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
 		p.noPrefixParseFnError(p.curToken.Type)
 		return nil
 	}
 	leftExp := prefix()
+
+	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.readNextPrecedence() {
+		infix := p.infixParseFns[p.nextToken.Type]
+		if infix == nil {
+			return leftExp
+		}
+
+		p.readNextToken()
+
+		leftExp = infix(leftExp)
+	}
 	return leftExp
 }
 
@@ -126,8 +163,20 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	return prefEx
 }
 
+func (p * Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	infExp := &ast.InfixExpression{
+		Token: p.curToken,
+		Operator: p.curToken.Literal,
+		Left: left,
+	}
+
+	precedence := p.curPrecedence()
+	p.readNextToken()
+	infExp.Right = p.parseExpression(precedence)
+	return infExp
+}
+
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
-	fmt.Printf("parseExpressionStatement with %s\n", p.curToken)
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 	stmt.Expression = p.parseExpression(LOWEST)
 	if p.peekTokenIs(token.SEMICOLON) {
@@ -191,11 +240,23 @@ func New(l *lexer.Lexer) * Parser {
 		errors: []string{},
 	}
 
+	//prefix parse functions
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.SUB, p.parsePrefixExpression)
+
+	// infix parse functions
+	p.infixParseFns = make(map[token.TokenType]infixParseFn)
+	p.registerInfix(token.PLUS, p.parseInfixExpression)
+	p.registerInfix(token.SUB, p.parseInfixExpression)
+	p.registerInfix(token.FWDSLASH, p.parseInfixExpression)
+	p.registerInfix(token.ASTRX, p.parseInfixExpression)
+	p.registerInfix(token.EQ, p.parseInfixExpression)
+	p.registerInfix(token.NOTEQ, p.parseInfixExpression)
+	p.registerInfix(token.LT, p.parseInfixExpression)
+	p.registerInfix(token.GT, p.parseInfixExpression)
 
 	p.readNextToken()
 	p.readNextToken()
