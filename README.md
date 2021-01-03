@@ -5,11 +5,20 @@ This repo contains the source code for the interpreter, and will contain the com
 Currently this project supports: 
 
 - Lexing of Input tokens
+- Interpreter Can Parse:
+  - Identifiers
+  - Let statement
+  - Return statement
+  - Integer literal
+  - Prefix expressions (-, !)
+  - Infix expressions (+, -, *, /)
+  - Boolean literals 
 
 To Be Done: 
-- Interpreter: 
-  - Parse the input tokens
-  - Evaluate the input code 
+- Interpreter Can Parse:
+  - if statements
+  - function literals
+  - call expressions
 
 - Compiler: 
   - All
