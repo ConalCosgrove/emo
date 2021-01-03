@@ -208,11 +208,11 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.readNextToken()
-	}
+	p.readNextToken()
+	stmt.Value = p.parseExpression(LOWEST)
+	// for !p.curTokenIs(token.SEMICOLON) {
+	// 	p.readNextToken()
+	// }
 		return stmt
 }
 
@@ -220,11 +220,10 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	fmt.Print("parseReturnStatement\n")
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 	p.readNextToken()
-	// TODO: We're skipping the expressions until we
-	// encounter a semicolon
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.readNextToken()
-	}
+	stmt.ReturnValue = p.parseExpression(LOWEST)
+	// for !p.curTokenIs(token.SEMICOLON) {
+	// 	p.readNextToken()
+	// }
 
 	return stmt
 }
