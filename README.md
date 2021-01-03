@@ -14,14 +14,13 @@ Currently this project supports:
   - Infix expressions (+, -, *, /)
   - Boolean literals 
   - if / else statements
+  - function literals
 
 To Be Done: 
-- Interpreter Can Parse:
-  - function literals
+- Interpreter:
   - call expressions
 
-- Compiler: 
-  - All
+- Evaluation of AST
 
 
 ## To use the REPL
