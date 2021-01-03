@@ -13,10 +13,10 @@ Currently this project supports:
   - Prefix expressions (-, !)
   - Infix expressions (+, -, *, /)
   - Boolean literals 
+  - if / else statements
 
 To Be Done: 
 - Interpreter Can Parse:
-  - if statements
   - function literals
   - call expressions
 
