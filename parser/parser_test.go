@@ -583,3 +583,42 @@ tests := []struct {
 		}
 	}
 }
+
+func TestFunctionCallParsing(t * testing.T) {
+	input := `myFunc(x,y, 4 + 5);`
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("wrong numebr of statements. expected 1, got %d", 
+			len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Statement is not of type *ast.ExpressionStatement, instead got %T", 
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.FunctionCall)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.CallExpression. got=%T",
+			stmt.Expression)
+	}
+
+	if !testIdentifier(t, exp.Function, "myFunc") {
+		return
+	}
+
+	if len(exp.Arguments) != 3 {
+		t.Fatalf("wrong length of arguments. got=%d", len(exp.Arguments))
+	}
+
+	testIdentifier(t, exp.Arguments[0], "x")
+	testIdentifier(t, exp.Arguments[1], "y")
+	testInfixExpression(t, exp.Arguments[2], 4, "+", 5)
+}

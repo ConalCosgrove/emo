@@ -28,6 +28,7 @@ var precedences = map[token.TokenType]int{
 	token.SUB: SUM,
 	token.FWDSLASH: PRODUCT,
 	token.ASTRX: PRODUCT,
+	token.LPAREN: CALL,
 }
 
 type Parser struct {
@@ -210,7 +211,8 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	}
 	p.readNextToken()
 	stmt.Value = p.parseExpression(LOWEST)
-	for !p.curTokenIs(token.SEMICOLON) {
+
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.readNextToken()
 	}
 		return stmt
@@ -221,7 +223,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 	p.readNextToken()
 	stmt.ReturnValue = p.parseExpression(LOWEST)
-	for !p.curTokenIs(token.SEMICOLON) {
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.readNextToken()
 	}
 
@@ -315,6 +317,34 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	
 }
 
+func (p *Parser) parseFunctionCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		return args
+	}
+
+	p.readNextToken()
+	args = append(args, p.parseExpression(LOWEST))
+	for p.peekTokenIs(token.COMMA) {
+		p.readNextToken()
+		p.readNextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
+}
+
+func (p * Parser) parseFunctionCall(function ast.Expression) ast.Expression {
+	call := &ast.FunctionCall{Token: p.curToken, Function: function}
+	call.Arguments = p.parseFunctionCallArguments()
+	return call
+}
+
 func (p *Parser) curTokenIs(t token.TokenType) bool {
 	return p.curToken.Type == t
 }
@@ -361,6 +391,7 @@ func New(l *lexer.Lexer) * Parser {
 	p.registerInfix(token.NOTEQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
+	p.registerInfix(token.LPAREN, p.parseFunctionCall)
 
 	p.readNextToken()
 	p.readNextToken()

@@ -15,11 +15,9 @@ Currently this project supports:
   - Boolean literals 
   - if / else statements
   - function literals
-
-To Be Done: 
-- Interpreter:
   - call expressions
 
+To Be Done: 
 - Evaluation of AST
 
 
