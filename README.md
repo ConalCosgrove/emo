@@ -17,8 +17,27 @@ Currently this project supports:
   - function literals
   - call expressions
 
+- Evaluator Can Evaluate: 
+  - Integer literals 
+  - Boolean literals 
+  - Null
+  - Prefix expressions (- and !)
+  - Infix expressions (+, -, *, /) currently only between two integers 
+
+
 To Be Done: 
-- Evaluation of AST
+- Evaluator cannot yet evaluate: 
+  - Infix expressions containing non integers eg. function calls
+  - Conditionals 
+  - Return statements 
+  - Functions and Function Calls 
+- Error handling during evaluation
+- Support for more dataTypes:
+  - Strings
+  - Built-in functions
+  - Arrays 
+  - Hashes 
+  - etc.
 
 
 ## To use the REPL
