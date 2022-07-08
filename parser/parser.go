@@ -9,42 +9,42 @@ import (
 )
 
 const (
-	_ int = iota
-	LOWEST // Zero value used when no statements have been parsed
-	EQUALS // ==
-	LESSGREATER // > or <
-	SUM // +
-	PRODUCT // *
-	PREFIX // -X or !X
-	CALL // myFunction(X)
+	_           int = iota
+	LOWEST          // Zero value used when no statements have been parsed
+	EQUALS          // ==
+	LESSGREATER     // > or <
+	SUM             // +
+	PRODUCT         // *
+	PREFIX          // -X or !X
+	CALL            // myFunction(X)
 )
 
 var precedences = map[token.TokenType]int{
-	token.EQ: EQUALS,
-	token.NOTEQ: EQUALS,
-	token.LT: LESSGREATER,
-	token.GT: LESSGREATER,
-	token.PLUS: SUM,
-	token.SUB: SUM,
+	token.EQ:       EQUALS,
+	token.NOTEQ:    EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.PLUS:     SUM,
+	token.SUB:      SUM,
 	token.FWDSLASH: PRODUCT,
-	token.ASTRX: PRODUCT,
-	token.LPAREN: CALL,
+	token.ASTRX:    PRODUCT,
+	token.LPAREN:   CALL,
 }
 
 type Parser struct {
 	l *lexer.Lexer
 
-	curToken token.Token
+	curToken  token.Token
 	nextToken token.Token
-	errors []string
+	errors    []string
 
 	prefixParseFns map[token.TokenType]prefixParseFn
-	infixParseFns map[token.TokenType]infixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 type (
 	prefixParseFn func() ast.Expression
-	infixParseFn func(ast.Expression) ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
 )
 
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
@@ -69,20 +69,19 @@ func (p *Parser) readNextPrecedence() int {
 
 func (p *Parser) curPrecedence() int {
 	if precedence, ok := precedences[p.curToken.Type]; ok {
-		return precedence;
+		return precedence
 	}
-	return LOWEST;
+	return LOWEST
 }
 
-	
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
-		case token.LET:
-			return p.parseLetStatement()
-		case token.RETURN: 
-			return p.parseReturnStatement()
-		default:
-			return p.parseExpressionStatement()
+	case token.LET:
+		return p.parseLetStatement()
+	case token.RETURN:
+		return p.parseReturnStatement()
+	default:
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -101,7 +100,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 }
 
 func (p *Parser) Errors() []string {
-	return p.errors;
+	return p.errors
 }
 
 func (p *Parser) addError(t token.TokenType) {
@@ -143,7 +142,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {
 	lit := &ast.IntegerLiteral{Token: p.curToken}
-	integer, err := strconv.ParseInt(p.curToken.Literal,10, 64)
+	integer, err := strconv.ParseInt(p.curToken.Literal, 10, 64)
 	if err != nil {
 		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
 		p.errors = append(p.errors, msg)
@@ -160,7 +159,7 @@ func (p *Parser) parseBoolean() ast.Expression {
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	prefEx := &ast.PrefixExpression{
-		Token: p.curToken, 
+		Token:    p.curToken,
 		Operator: p.curToken.Literal,
 	}
 	p.readNextToken()
@@ -168,11 +167,11 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	return prefEx
 }
 
-func (p * Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	infExp := &ast.InfixExpression{
-		Token: p.curToken,
+		Token:    p.curToken,
 		Operator: p.curToken.Literal,
-		Left: left,
+		Left:     left,
 	}
 
 	precedence := p.curPrecedence()
@@ -215,7 +214,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.readNextToken()
 	}
-		return stmt
+	return stmt
 }
 
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
@@ -314,7 +313,7 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	functionLiteral.Body = p.parseBlockStatement()
 
 	return functionLiteral
-	
+
 }
 
 func (p *Parser) parseFunctionCallArguments() []ast.Expression {
@@ -339,7 +338,7 @@ func (p *Parser) parseFunctionCallArguments() []ast.Expression {
 	return args
 }
 
-func (p * Parser) parseFunctionCall(function ast.Expression) ast.Expression {
+func (p *Parser) parseFunctionCall(function ast.Expression) ast.Expression {
 	call := &ast.FunctionCall{Token: p.curToken, Function: function}
 	call.Arguments = p.parseFunctionCallArguments()
 	return call
@@ -363,9 +362,9 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 	}
 }
 
-func New(l *lexer.Lexer) * Parser {
+func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		l: l,
+		l:      l,
 		errors: []string{},
 	}
 
@@ -395,5 +394,5 @@ func New(l *lexer.Lexer) * Parser {
 
 	p.readNextToken()
 	p.readNextToken()
-	return p;
+	return p
 }

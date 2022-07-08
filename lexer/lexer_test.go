@@ -1,8 +1,8 @@
 package lexer
 
 import (
-	"testing"
 	"emo/token"
+	"testing"
 )
 
 func TestNextToken(t *testing.T) {
@@ -29,10 +29,11 @@ func TestNextToken(t *testing.T) {
 
 	test == pilots
 	test != pilots
+	add(5,5) == 10
 	`
 
 	tests := []struct {
-		expectedType token.TokenType
+		expectedType    token.TokenType
 		expectedLiteral string
 	}{
 		{token.LET, "let"},
@@ -141,10 +142,20 @@ func TestNextToken(t *testing.T) {
 		{token.IDENT, "test"},
 		{token.EQ, "=="},
 		{token.IDENT, "pilots"},
-		
+
 		{token.IDENT, "test"},
 		{token.NOTEQ, "!="},
 		{token.IDENT, "pilots"},
+
+		{token.IDENT, "add"},
+		{token.LPAREN, "("},
+		{token.INT, "5"},
+		{token.COMMA, ","},
+		{token.INT, "5"},
+		{token.RPAREN, ")"},
+		{token.EQ, "=="},
+		{token.INT, "10"},
+
 		{token.EOF, ""},
 	}
 
@@ -153,11 +164,11 @@ func TestNextToken(t *testing.T) {
 		tok := l.NextToken()
 		if tok.Type != tt.expectedType {
 			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-			i, tt.expectedType, tok.Type)
+				i, tt.expectedType, tok.Type)
 		}
 		if tok.Literal != tt.expectedLiteral {
 			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
-			i, tt.expectedLiteral, tok.Literal)
+				i, tt.expectedLiteral, tok.Literal)
 		}
 	}
 }
